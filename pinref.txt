@@ -1,0 +1,60 @@
+Uno
+
+Dig out: 14 (6 pwm)
+Analog in: 6
+
+## Motor 1
+
+current
+direction: 2 (out)
+Speed: ~3 (out)
+
+## Motor 2
+
+current
+direction: 4 (out)
+Speed: ~5 (out)
+
+## Motor 3
+
+current
+direction: 7 (out)
+Speed: ~6 (out)
+
+## Motor 4
+
+current
+direction: 8 (out)
+Speed: ~9 (out)
+
+## IR sensor
+
+input: a0 (analog)
+
+## Mic
+
+input: a1  (analog)
+
+## Servo
+
+direction: ~10 
+
+## Buzzer
+
+output: ~11
+
+## Free:
+
+0
+1
+12
+13
+
+Analog in
+
+a2
+a3
+a4
+a5
+
+
