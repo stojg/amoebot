@@ -8,3 +8,6 @@ $14.90
 http://www.seeedstudio.com/depot/3w-solar-panel-138x160-p-954.html?cPath=155
 
 13,8cm*16cm
+
+WS2801 IC
+pwm extender

@@ -5,8 +5,6 @@
  */
 #ifndef MOTOR_DRIVER_H
 #define MOTOR_DRIVER_H
-
-namespace Stojg {
   
     class MotorDriver {
     public:
@@ -25,6 +23,6 @@ namespace Stojg {
          */
         virtual int getSpeed() const = 0;            
     };
-};
+
 
 #endif

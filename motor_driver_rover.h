@@ -7,8 +7,6 @@
 #include "motor_driver.h"
 #include "Arduino.h"
 
-namespace Stojg {
-
     class Motor : public MotorDriver {
     public:
         /*
@@ -38,4 +36,4 @@ namespace Stojg {
         int speed_pin;
         int direction_pin;
     };
-};
+

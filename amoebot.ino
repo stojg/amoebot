@@ -2,15 +2,17 @@
 #include "motor_driver_rover.h"
 #include "robot.h"
 
-Stojg::Robot robot();
+
+IR irsensor(0);
+Robot robot(irsensor);
 
 void setup()
 {
 
-	robot.initialize();
+  robot.initialize();
 }
 
 void loop()
-{
-	robot.run();
+{ 
+  robot.run();
 }
