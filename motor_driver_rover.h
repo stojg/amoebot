@@ -4,6 +4,8 @@
  * @author Stig Lindqvist <stojg.lindqvist@gmail.coom>
  */
 
+#ifndef MOTOR_DRIVER_ROVER_H
+#define MOTOR_DRIVER_ROVER_H
 #include "motor_driver.h"
 #include "Arduino.h"
 
@@ -14,16 +16,28 @@
          * @param number the DC motor number to control, from 1 to 4.
          */
         Motor(int speed_pin, int direction_pin) : MotorDriver(), speed_pin(speed_pin), direction_pin(direction_pin), currentSpeed(0) {
+          pinMode(direction_pin, OUTPUT);
+          pinMode(speed_pin, OUTPUT);
         }
 
         void setSpeed(int speed) {
-            currentSpeed = speed;
+          
+            if(speed == 0) {
+              analogWrite(speed_pin, 0);
+              currentSpeed = 0;
+              return;
+            }
+            
+            int motorspeed = map(speed,0,100,80,255);
+            currentSpeed = motorspeed;
+            
             if (speed >= 0) {
+                Serial.println(motorspeed);
                 digitalWrite(direction_pin, HIGH);
-                analogWrite(speed_pin, speed);
+                analogWrite(speed_pin, motorspeed);
             } else {
                 digitalWrite(direction_pin, LOW);
-                analogWrite(speed_pin, -speed);
+                analogWrite(speed_pin, motorspeed);
             }
         }
 
@@ -37,3 +51,4 @@
         int direction_pin;
     };
 
+#endif
