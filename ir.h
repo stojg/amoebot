@@ -13,7 +13,7 @@ class IR
         /*
          * @brief Class constructor.
          */
-        IR(int pin) : irpin(pin), lastMillis(millis()), lastDistance(120), responseTime(48) {
+        IR(int pin) : irpin(pin), lastMillis(millis()), lastDistance(60), responseTime(50) {
             pinMode(irpin, OUTPUT);
         }
         
@@ -25,6 +25,8 @@ class IR
           }
           
           int value = analogRead(irpin);
+          lastDistance = value;
+          
           lastDistance = 10650.08 * pow(value, -0.935) - 10;
           lastMillis = currentTime;
           return lastDistance;

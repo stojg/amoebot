@@ -28,11 +28,11 @@
               return;
             }
             
-            int motorspeed = map(speed,0,100,80,255);
+            int motorspeed = constrain(abs(speed),0,255);
+            
             currentSpeed = motorspeed;
             
             if (speed >= 0) {
-                Serial.println(motorspeed);
                 digitalWrite(direction_pin, HIGH);
                 analogWrite(speed_pin, motorspeed);
             } else {
