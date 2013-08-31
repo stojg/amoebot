@@ -1,4 +1,5 @@
 build.sh
+.build
 build/
 makefile
 images
