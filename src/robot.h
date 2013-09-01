@@ -25,6 +25,8 @@ public:
 	 * Initialize the robot
 	 */
 	void initialize() {
+		IRScanner.moveTo(90);
+		delay(1000);
 		IRScanner.moveTo(20);
 		delay(200);
 		this->robotState = r_scanning;
@@ -44,12 +46,15 @@ public:
 
 		int distance = closest[0];
 		int direction = closest[1];
+		
+		IRScanner.run();
 
 		switch (this->robotState) {
 				// wait to stabilize analog reading
 			case r_scanning:
-				if (elapsedTime >= 2) {
-					IRScanner.run();
+				this->SetSpeedLeft(0);
+				this->SetSpeedRight(0);
+				if (elapsedTime >= 1000) {
 					this->timer = currentTime;
 					this->robotState = r_moving;
 				}
@@ -68,7 +73,8 @@ public:
 					this->SetSpeedLeft(255);
 					this->SetSpeedRight(255);
 				}
-				if (elapsedTime >= 2) {
+				
+				if (elapsedTime >= 10000) {
 					this->timer = currentTime;
 					this->robotState = r_scanning;
 				}
