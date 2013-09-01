@@ -3,6 +3,7 @@
 #include "IR.h"
 #include "moving_average.h"
 #include "motor_driver_rover.h"
+#include "distance_scanner.h"
 #include <Servo.h>
 
 class Robot {
@@ -11,29 +12,31 @@ public:
 	/*
 	 * @brief Class constructor.
 	 */
-	Robot(IR & irsensor, Motor & lfMotor, Motor & lbMotor, Motor & rfMotor, Motor & rbMotor, Servo & scanner) : irSensor(irsensor), distanceAverage(80),
+	Robot(Motor &lfMotor, Motor &lbMotor, Motor &rfMotor, Motor &rbMotor, DistanceScanner &scanner ) : 
 	LeftFrontMotor(lfMotor),
 	LeftBackMotor(lbMotor),
 	RightFrontMotor(rfMotor),
 	RightBackMotor(rbMotor),
-	ScanServo(scanner) {
-
+	IRScanner(scanner)
+	{
+		
+		//this->timer = millis();
 	}
 
 	/**
 	 * Initialize the robot
 	 */
 	void initialize() {
-
-		this->scanToRight = false;
-		scanDegree = 90;
-		ScanServo.write(scanDegree);
+		IRScanner.moveTo(20);
 		delay(200);
+		this->robotState = r_scanning;
+		this->timer = millis();
+
 	}
 
 	void wander() {
-		this->setHeading(0);
-		this->setSpeed(100);
+		//this->setHeading(0);
+		//this->setSpeed(100);
 	}
 
 	void stop() {
@@ -51,82 +54,66 @@ public:
 	}
 
 	void run() {
-		this->scan();
-
-		int distance = this->getClosestObstacle();
-		if (distance < 23) {
-			if (this->closestObstacleDirection < 90) {
-				this->SetSpeedRight(-128);
-				this->SetSpeedLeft(128);
-			} else {
-				this->SetSpeedRight(128);
-				this->SetSpeedLeft(-128);
-			}
-
-		} else {
-			this->SetSpeedLeft(128);
-			this->SetSpeedRight(128);
-		}
+		unsigned long currentTime = millis();
+		unsigned long elapsedTime = currentTime - this->timer;
+		int *closest = IRScanner.getClosestObject();;
+		
+		int distance = closest[0];
+		int direction = closest[1];
+		
+		switch (this->robotState) {
+			// wait to stabilize analog reading
+			case r_scanning:
+				if(elapsedTime >= 2) {
+					IRScanner.run();
+					
+					this->timer = currentTime;
+					this->robotState = r_moving;
+				}
+				break;
+			case r_moving:
+				// Wait until it have moved
+				if (distance < 20) {
+					if (direction < 90) {
+						this->SetSpeedRight(-255);
+						this->SetSpeedLeft(255);
+					} else {
+						this->SetSpeedRight(255);
+						this->SetSpeedLeft(-255);
+					}
+				} else {
+					this->SetSpeedLeft(255);
+					this->SetSpeedRight(255);
+				}
+				if(elapsedTime >= 2) {
+					this->timer = currentTime;
+					this->robotState = r_scanning;
+				}
+				break;
+			default:
+				Serial.println(this->robotState);
+				break;
+        }
 	}
 
 private:
 
-	void scan() {
-		if (millis() - scannerTime < 4) {
-			return;
-		}
-		scannerTime = millis();
-
-		if (this->scanToRight) {
-			this->scanDegree++;
-		} else {
-			this->scanDegree--;
-		}
-
-		if (this->scanDegree >= 160) {
-			this->scanToRight = false;
-
-		}
-
-		if (this->scanDegree <= 20) {
-			this->closestObstacleDistance = 1000;
-			this->scanToRight = true;
-		}
-
-		ScanServo.write(this->scanDegree);
-
-		int distance = distanceAverage.add(irSensor.getDistance());
-		if (distance > 60) {
-			return;
-		}
-		if (distance < this->closestObstacleDistance) {
-			this->closestObstacleDistance = distance;
-			this->closestObstacleDirection = this->scanDegree;
-		}
-		//Serial.print(this->closestObstacleDistance);
-		//Serial.print("cm ");
-		//Serial.println(this->closestObstacleDirection);
-	}
-
-	long scannerTime;
-	int scanDegree;
-	boolean scanToRight;
+	unsigned long timer;
 
 	int getClosestObstacle() {
 		return this->closestObstacleDistance;
 	}
 
 	void SetSpeedLeft(int speed) {
-		//this->LeftFrontMotor.setSpeed(speed);
-		//this->LeftBackMotor.setSpeed(-speed);
+		this->LeftFrontMotor.setSpeed(speed);
+		this->LeftBackMotor.setSpeed(-speed);
 	}
 
 	void SetSpeedRight(int speed) {
-		// this->RightFrontMotor.setSpeed(speed);
-		// this->RightBackMotor.setSpeed(-speed);
+		this->RightFrontMotor.setSpeed(speed);
+		this->RightBackMotor.setSpeed(-speed);
 	}
 
-	IR irSensor;
 	int heading;
 	unsigned int speed;
 	int closestObstacleDistance;
@@ -136,7 +123,9 @@ private:
 	Motor RightFrontMotor;
 	Motor RightBackMotor;
 	Servo ScanServo;
-	MovingAverage<unsigned int, 3> distanceAverage;
+	DistanceScanner IRScanner;
+	enum state_type { r_scanning, r_moving };
+    state_type robotState;
 };
 
 #endif
