@@ -3,8 +3,6 @@
  * @brief Helper class that maintains a moving average over a set of samples.
  * @author Miguel Grinberg
  */
-#ifndef MOVING_AVERAGE_H
-#define MOVING_AVERAGE_H
 
 template <typename V, int N> class MovingAverage {
 public:
@@ -28,22 +26,9 @@ public:
 	V add(V new_sample) {
 		sum = sum - samples[p] + new_sample;
 		samples[p++] = new_sample;
-		if (p >= N) {
+		if (p >= N)
 			p = 0;
-		}
 		return sum / N;
-	}
-	
-	bool operator!=(int val) {
-		return ((sum / N)!=val);
-	}
-	
-	bool operator<(int val) {
-		return ((sum / N)<val);
-	}
-	
-	int get() {
-		return (sum/N);
 	}
 
 private:
@@ -51,5 +36,3 @@ private:
 	V sum;
 	V p;
 };
-
-#endif

@@ -6,14 +6,13 @@
 
 #ifndef DISTANCE_SCANNER_H
 #define	DISTANCE_SCANNER_H
-#define DISTANCE_SCANNER_STEPS 6
+#define DISTANCE_SCANNER_STEPS 11
 #define DISTANCE_SCANNER_MIN 20
 #define DISTANCE_SCANNER_MAX 160
-#define DISTANCE_SCANNER_INCREMENTS 28
-#define DISTANCE_SCANNER_SPEED 2
+#define DISTANCE_SCANNER_INCREMENTS 14
+#define DISTANCE_SCANNER_SPEED 1.7
 #include <Servo.h>
 #include "ir.h"
-#include "moving_average.h"
 
 class DistanceScanner {
 public:
@@ -54,14 +53,14 @@ public:
 		switch (this->state) {
 			// wait to stabilize analog reading
 			case idle:
-				if (elapsedTime >= 10) {
+				if (elapsedTime >= 50) {
 					this->startTime = currentTime;
 					this->state = scanning;
 				}
 				break;
 			// Read distance
 			case scanning:
-				this->rangeData[this->currentPosition].add(irSensor.getDistance());
+				this->rangeData[this->currentPosition] = irSensor.getDistance();
 				this->startTime = currentTime;
 				this->state = moving;
 				break;
@@ -106,12 +105,11 @@ public:
      * @return 
      */
 	int* getClosestObject() {
-		
 		int closest[2] = {1000, 90};
 		for (int i = 0; i < DISTANCE_SCANNER_STEPS - 1; i++) {
 			if (this->rangeData[i] != 0 && this->rangeData[i] < closest[0]) {
 				// distance
-				closest[0] = this->rangeData[i].get();
+				closest[0] = this->rangeData[i];
 				// degree
 				closest[1] = DISTANCE_SCANNER_MIN + i * DISTANCE_SCANNER_INCREMENTS;
 			}
@@ -133,7 +131,7 @@ private:
 		scanning, moving, idle
 	};
 	state_type state;
-	MovingAverage<unsigned int, 2> rangeData[DISTANCE_SCANNER_STEPS];
+	float rangeData[DISTANCE_SCANNER_STEPS];
 	
 };
 
