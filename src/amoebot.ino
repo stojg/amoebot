@@ -1,9 +1,8 @@
 #include "pin_reference.h"
-#include "motor_driver_rover.h"
+#include "motor.h"
 #include "robot.h"
 #include "distance_scanner.h"
 #include <Servo.h>
-
 
 Motor lfMotor(MOT_LF_SPEED, MOT_LF_DIRECTION);
 Motor lbMotor(MOT_LB_SPEED, MOT_LB_DIRECTION);
@@ -21,7 +20,7 @@ void setup() {
 	robot.initialize();
 }
 
-void loop() { 
-    robot.run();
+void loop() {
+	robot.run();
 
 }
