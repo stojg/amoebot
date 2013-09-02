@@ -44,11 +44,23 @@ public:
 
 		int distance = closest[0];
 		int direction = closest[1];
-
+		
+		if(digitalRead(13)) {
+			this->robotState = r_idle;
+		}
+		
 		switch (this->robotState) {
-				// wait to stabilize analog reading
+			
+			case r_idle:
+				this->stop();
+				if(!digitalRead(13)) {
+					this->robotState = r_scanning;
+				}
+				break;
+			
+			// wait to stabilize analog reading
 			case r_scanning:
-				if (elapsedTime >= 2) {
+				if (elapsedTime >= 1) {
 					IRScanner.run();
 					this->timer = currentTime;
 					this->robotState = r_moving;
@@ -68,7 +80,7 @@ public:
 					this->SetSpeedLeft(255);
 					this->SetSpeedRight(255);
 				}
-				if (elapsedTime >= 2) {
+				if (elapsedTime >= 1) {
 					this->timer = currentTime;
 					this->robotState = r_scanning;
 				}
@@ -99,7 +111,7 @@ private:
 	Servo ScanServo;
 	DistanceScanner IRScanner;
 	enum state_type {
-		r_scanning, r_moving
+		r_scanning, r_moving, r_idle
 	};
 	state_type robotState;
 };

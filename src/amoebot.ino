@@ -11,7 +11,6 @@ Motor rbMotor(MOT_RB_SPEED, MOT_RB_DIRECTION);
 IR irSensor(PA_IR);
 Servo myservo;
 DistanceScanner scanner(myservo, irSensor);
-
 Robot robot(lfMotor, lbMotor, rfMotor, rbMotor, scanner);
 
 void setup() {
