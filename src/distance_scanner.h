@@ -28,7 +28,7 @@ public:
 	myservo(servo) {
 		this->startTime = millis();
 		this->sweepUp = false;
-		this->state = moving;
+		this->state = sweeping;
 		this->currentPosition = 0;
 		this->currentDegree = DISTANCE_SCANNER_MIN;
 	}
@@ -47,29 +47,24 @@ public:
 	/**
 	 * Progress the sweep and scan 
      */
-	void run() {
+	void sweepAndMeasure() {
 		unsigned long currentTime = millis();
 		unsigned long elapsedTime = currentTime - this->startTime;
 		switch (this->state) {
-			// wait to stabilize analog reading
-			case idle:
-				if (elapsedTime >= 50) {
-					this->startTime = currentTime;
-					this->state = scanning;
-				}
-				break;
 			// Read distance
 			case scanning:
-				this->rangeData[this->currentPosition] = irSensor.getDistance();
-				this->startTime = currentTime;
-				this->state = moving;
+				if (elapsedTime >= 50) {
+					this->rangeData[this->currentPosition] = irSensor.getDistance();
+					this->startTime = currentTime;
+					this->state = sweeping;
+				}
 				break;
 			// Move the servo to position
-			case moving:
+			case sweeping:
 				// Wait until it have finished moving
 				if (elapsedTime >= DISTANCE_SCANNER_INCREMENTS * DISTANCE_SCANNER_SPEED) {
 					this->sweep();
-					this->state = idle;
+					this->state = scanning;
 					this->startTime = currentTime;
 				}
 				break;
@@ -77,11 +72,24 @@ public:
 		return;
 	}
 
+	int getCurrentDistance() {
+		unsigned long currentTime = millis();
+		unsigned long elapsedTime = currentTime - this->startTime;
+		if (elapsedTime >= 50) {
+			this->startTime = currentTime;
+			this->rangeData[this->currentPosition] = irSensor.getDistance();
+		}
+		return this->rangeData[this->currentPosition];
+	}
+	
+	int getCurrentDegree() {
+		return this->currentDegree;
+	}
+	
 	/**
 	 * Sweep the servo
 	 */
 	void sweep() {
-
 		if (this->currentDegree >= DISTANCE_SCANNER_MAX) {
 			this->currentDegree = DISTANCE_SCANNER_MAX;
 			this->sweepUp = false;
@@ -128,7 +136,7 @@ private:
 	int currentPosition;
 
 	enum state_type {
-		scanning, moving, idle
+		scanning, sweeping
 	};
 	state_type state;
 	float rangeData[DISTANCE_SCANNER_STEPS];
