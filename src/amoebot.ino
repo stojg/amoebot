@@ -15,6 +15,7 @@ Robot robot(lfMotor, lbMotor, rfMotor, rbMotor, scanner);
 
 void setup() {
 	Serial.begin(9600);
+	randomSeed(analogRead(2));
 	myservo.attach(SERVO_IR);
 	robot.initialize();
 }

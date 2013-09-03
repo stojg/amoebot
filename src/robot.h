@@ -25,9 +25,9 @@ public:
 	 * Initialize the robot
 	 */
 	void initialize() {
-		IRScanner.moveTo(20);
+		IRScanner.moveTo(90);
 		delay(200);
-		this->robotState = r_scanning;
+		this->robotState = r_forward;
 		this->timer = millis();
 
 	}
@@ -38,73 +38,53 @@ public:
 	}
 
 	void run() {
-		unsigned long currentTime = millis();
-		unsigned long elapsedTime = currentTime - this->timer;
-		int *closest;
-
-		int distance = closest[0];
-		int direction = closest[1];
+		unsigned long elapsedTime = millis() - this->timer;
 		
-		if(!digitalRead(13)) {
-			this->robotState = r_idle;
-		}
-		
+		int distance;
 		switch (this->robotState) {
-			case r_idle:
-				this->stop();
-				Serial.println("idle");
-				if(digitalRead(13)) {
-					this->robotState = r_scan;
-					this->timer = millis();
-				}
-				break;
-
 			case r_avoid:
-				distance = IRScanner.getCurrentDistance();
-				direction = IRScanner.getCurrentDegree(); 
-				Serial.print("avoid ");
-				Serial.print(distance);
-				Serial.print("cm ");
-				Serial.println(direction);
-				if(distance > 30) {
-					this->timer = millis();
-					this->robotState = r_scan;
-				} else if(distance < 25) {
-					if(direction < 90) {
-						this->backLeft();
-					} else {
-						this->backRight();
-						
-					}
+				if(random(2) > 0) {
+					this->robotState = r_left;
 				} else {
-					if(direction < 90) {
-						this->turnLeft();
+					this->robotState = r_right;
+				}
+				break;
+			
+			case r_left:
+				this->turnLeft();
+				if(elapsedTime > 1000) {
+					distance = IRScanner.getCurrentDistance();
+					if(distance > 20) {
+						this->timer = millis();
+						this->robotState = r_forward;
 					} else {
-						this->turnRight();
+						this->timer = millis();
+						this->robotState = r_left;
 					}
 				}
 				break;
 				
-			case r_scan:
-				this->stop();
-				IRScanner.sweepAndMeasure();
-				closest = IRScanner.getClosestObject();
-				if(elapsedTime > 500) {
-					this->robotState = r_forward;
-					this->timer = millis();
+			case r_right:
+				distance = IRScanner.getCurrentDistance();
+				this->turnRight();
+				if(elapsedTime > 1000) {
+					distance = IRScanner.getCurrentDistance();
+					if(distance > 20) {
+						this->timer = millis();
+						this->robotState = r_forward;
+					} else {
+						this->timer = millis();
+						this->robotState = r_right;
+					}
 				}
 				break;
-				
+		
 			case r_forward:
-				closest = IRScanner.getClosestObject();
-				Serial.print("forward ");
-				Serial.print(closest[0]);
-				Serial.print("cm ");
-				Serial.println(closest[1]);
-				if(closest[0] < 25) {
+				distance = IRScanner.getCurrentDistance();
+				if(distance < 20) {
+					this->timer = millis();
 					this->robotState = r_avoid;
 				} else {
-					IRScanner.sweepAndMeasure();
 					this->forward();
 				}
 				break;
@@ -148,11 +128,21 @@ private:
 	}
 
 	void setSpeedLeft(int speed) {
+		if(digitalRead(13)) {
+			this->LeftFrontMotor.setSpeed(0);
+			this->LeftBackMotor.setSpeed(0);
+			return;
+		}
 		this->LeftFrontMotor.setSpeed(speed);
 		this->LeftBackMotor.setSpeed(-speed);
 	}
 
 	void setSpeedRight(int speed) {
+		if(digitalRead(13)) {
+			this->RightFrontMotor.setSpeed(0);
+			this->RightBackMotor.setSpeed(0);
+			return;
+		}
 		this->RightFrontMotor.setSpeed(speed);
 		this->RightBackMotor.setSpeed(-speed);
 	}
@@ -164,7 +154,7 @@ private:
 	Servo ScanServo;
 	DistanceScanner IRScanner;
 	enum state_type {
-		r_scanning, r_forward, r_idle, r_avoid, r_scan
+		r_forward, r_avoid, r_left, r_right
 	};
 	state_type robotState;
 };
