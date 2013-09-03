@@ -41,51 +41,64 @@ public:
 		unsigned long elapsedTime = millis() - this->timer;
 		
 		int distance;
+		int degree;
 		switch (this->robotState) {
 			case r_avoid:
-				if(random(2) > 0) {
+				degree = IRScanner.getCurrentDegree();
+				this->timer = millis();
+				if(degree > 110) {
+					this->robotState = r_right;
+				} else if(degree < 70) {
 					this->robotState = r_left;
 				} else {
-					this->robotState = r_right;
+					this->robotState = r_pivot;
 				}
+				break;
+				
+			case r_pivot:
+					this->turnLeft(128);
+					if(elapsedTime > 300) {
+						this->timer = millis();
+						this->robotState = r_forward;
+					}
 				break;
 			
 			case r_left:
-				this->turnLeft();
-				if(elapsedTime > 1000) {
-					distance = IRScanner.getCurrentDistance();
+				degree = IRScanner.getCurrentDegree();
+				distance = IRScanner.getCurrentDistance();
+				this->turnLeft(128);
+				if(elapsedTime > 100) {
 					if(distance > 20) {
 						this->timer = millis();
 						this->robotState = r_forward;
 					} else {
 						this->timer = millis();
-						this->robotState = r_left;
 					}
 				}
 				break;
 				
 			case r_right:
 				distance = IRScanner.getCurrentDistance();
-				this->turnRight();
-				if(elapsedTime > 1000) {
-					distance = IRScanner.getCurrentDistance();
+				distance = IRScanner.getCurrentDistance();
+				this->turnRight(128);
+				if(elapsedTime > 100) {
 					if(distance > 20) {
 						this->timer = millis();
 						this->robotState = r_forward;
 					} else {
 						this->timer = millis();
-						this->robotState = r_right;
 					}
 				}
 				break;
 		
 			case r_forward:
+				IRScanner.sweepAndMeasure();
 				distance = IRScanner.getCurrentDistance();
 				if(distance < 20) {
 					this->timer = millis();
 					this->robotState = r_avoid;
 				} else {
-					this->forward();
+					this->forward(255);
 				}
 				break;
 			default:
@@ -97,34 +110,34 @@ private:
 
 	unsigned long timer;
 	
-	void turnLeft() {
-		this->setSpeedLeft(255);
-		this->setSpeedRight(-255);
+	void turnLeft(int speed) {
+		this->setSpeedLeft(speed);
+		this->setSpeedRight(-speed);
 	}
 	
-	void turnRight() {
-		this->setSpeedLeft(-255);
-		this->setSpeedRight(255);
+	void turnRight(int speed) {
+		this->setSpeedLeft(-speed);
+		this->setSpeedRight(speed);
 	}
 	
-	void backLeft() {
-		this->setSpeedLeft(-60);
-		this->setSpeedRight(-255);
+	void backLeft(int speed) {
+		this->setSpeedLeft(-speed/4);
+		this->setSpeedRight(-speed);
 	}
 	
-	void backRight() {
-		this->setSpeedLeft(-255);
-		this->setSpeedRight(-60);
+	void backRight(int speed) {
+		this->setSpeedLeft(-speed);
+		this->setSpeedRight(-speed/4);
 	}
 	
-	void back() {
-		this->setSpeedLeft(-255);
-		this->setSpeedRight(-255);
+	void back(int speed) {
+		this->setSpeedLeft(-speed);
+		this->setSpeedRight(-speed);
 	}
 	
-	void forward() {
-		this->setSpeedLeft(255);
-		this->setSpeedRight(255);
+	void forward(int speed) {
+		this->setSpeedLeft(speed);
+		this->setSpeedRight(speed);
 	}
 
 	void setSpeedLeft(int speed) {
@@ -154,7 +167,7 @@ private:
 	Servo ScanServo;
 	DistanceScanner IRScanner;
 	enum state_type {
-		r_forward, r_avoid, r_left, r_right
+		r_forward, r_avoid, r_left, r_right, r_pivot
 	};
 	state_type robotState;
 };
